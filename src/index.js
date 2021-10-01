@@ -1,18 +1,18 @@
-const Discord = require("discord.js"); // imports the discord library
-const fs = require("fs"); // imports the file io library
+const Discord = require("discord.js");
+require('dotenv').config()
+
 const express = require('express')
 const app = express()
 
-const client = new Discord.Client(); // creates a discord client
-const token = " "; // gets your token from the file
-
+const client = new Discord.Client();
+const token = process.env.CLIENT_TOKEN;
 
 
 /********************************** Discord Stuff **********************************/
 
 
-client.once("ready", () => { // prints "Ready!" to the console once the bot is online
-    console.log("Ready!");
+client.once("ready", () => {
+    console.log("Bot is ready.");
 });
 
 var birthdayChannelID = ""
@@ -22,7 +22,7 @@ client.on("message", message => { // runs whenever a message is sent
         birthdayChannelID = message.channel.id
         console.log(birthdayChannelID)
         message.channel.send("Birthday channel selected succesfully. ")
-    } else if (message.content.startsWith("/birthday")) { // checks if the message says "?random"
+    } else if (message.content.startsWith("/birthday")) {
         if (birthdayChannelID != "") {
             console.log(JSON.stringify(message))
             var content = message.content
@@ -57,6 +57,6 @@ app.get('/notify', (req, res) => {
 
 client.login(token); // starts the bot up
 
-app.listen(80, () => {
-    console.log(`Example app listening at http://localhost`)
+app.listen(8080, () => {
+    console.log(`Bot has started listening for requests at http://localhost:8080`)
 })
