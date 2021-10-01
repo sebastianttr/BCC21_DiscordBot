@@ -30,7 +30,7 @@ client.on("message", message => { // runs whenever a message is sent
                 content.indexOf(" "),
                 content.indexOf(":"),
             )
-            message.channel.send(`Ok, ${name}, i'll note that down, Thank You. `); // sends a message to the channel with the number
+            message.channel.send(`Ok, ${name}, I'll note that down, Thank You. `); // sends a message to the channel with the number
         } else {
             message.channel.send("You forgot to select a birthday channel. Go to your channel and type   /birthdaySelectChannel ")
         }
