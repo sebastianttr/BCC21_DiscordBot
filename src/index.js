@@ -4,7 +4,7 @@ const express = require('express')
 const app = express()
 
 const client = new Discord.Client(); // creates a discord client
-const token = "ODkzMTEzODc4Njg1MzA2OTMw.YVWvHQ.4HvofhNVIFjpftS5pLBKRY-Ssn8"; // gets your token from the file
+const token = " "; // gets your token from the file
 
 
 
