@@ -15,7 +15,7 @@ client.once("ready", () => {
     console.log("Bot is ready.");
 });
 
-var birthdayChannelID = ""
+let birthdayChannelID = 
 
 client.on("message", message => { // runs whenever a message is sent
     if (message.content.startsWith("/birthdaySelectChannel")) {
@@ -25,7 +25,7 @@ client.on("message", message => { // runs whenever a message is sent
     } else if (message.content.startsWith("/birthday")) {
         if (birthdayChannelID != "") {
             console.log(JSON.stringify(message))
-            var content = message.content
+            let content = message.content
             const name = message.content.substring(
                 content.indexOf(" "),
                 content.indexOf(":"),
