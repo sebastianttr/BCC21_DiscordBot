@@ -13,6 +13,7 @@ const token = process.env.CLIENT_TOKEN;
 
 client.once("ready", () => {
     console.log("Bot is ready.");
+
 });
 
 var birthdayChannelID = ""
@@ -21,6 +22,7 @@ client.on("message", message => { // runs whenever a message is sent
     if (message.content.startsWith("/birthdaySelectChannel")) {
         birthdayChannelID = message.channel.id
         console.log(birthdayChannelID)
+        console.log(message.guild.id)
         message.channel.send("Birthday channel selected succesfully. ")
     } else if (message.content.startsWith("/birthday")) {
         if (birthdayChannelID != "") {
@@ -50,7 +52,6 @@ app.get('/notify', (req, res) => {
     client.channels.cache.get(birthdayChannelID).send("AUTO NOTIFICATION: " + notification);
     res.send("Notified the channels.")
 })
-
 
 /************************************* Startups *************************************/
 
