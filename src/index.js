@@ -13,7 +13,6 @@ const token = process.env.CLIENT_TOKEN;
 
 client.once("ready", () => {
     console.log("Bot is ready.");
-
 });
 
 var birthdayChannelID = ""

@@ -15,7 +15,7 @@ var members = [];
 
 
 app.get('/', async(request, response) => {
-    console.log("URL Query: " + JSON.stringify(request.query))
+    //console.log("URL Query: " + JSON.stringify(request.query))
 
     const urlencodedData = new URLSearchParams({
         client_id: process.env.CLIENT_ID,
@@ -68,8 +68,8 @@ app.get('/', async(request, response) => {
                 }
             })
 
-            //console.log("Response: " + JSON.stringify(res));
-            response.send(JSON.stringify(res))
+            console.log("Response: " + JSON.stringify(res));
+            response.status(301).redirect("http://localhost:8080/?userdata=" + JSON.stringify(res))
         } catch (e) {
             console.error(e);
         }
@@ -96,7 +96,7 @@ function getRoleById(id) {
 
     return {
         name: role[0].name,
-        color: '#' + role[0].color.toString(16)
+        color: role[0].color.toString(16)
     }
 }
 
