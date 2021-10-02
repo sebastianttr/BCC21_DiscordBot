@@ -10,6 +10,8 @@ const app = express()
 const client = new Discord.Client();
 const token = process.env.CLIENT_TOKEN;
 
+const DATA_FILE_PATH = "./data/";
+
 let birthdayConfig = {};
 
 function loadBirthdayConfig() {
@@ -75,7 +77,7 @@ client.on("message", message => { // runs whenever a message is sent
             saveBirthdayConfig();
             channel.send(`Thank you ${nickname}. I'll write that down and remember!`);
         } else {
-            channel.send(`I am sorry ${nickname}. I didn't understand that, please give me your birthday in DD.MM.YYYY format!`);
+            channel.send(`I am sorry ${nickname}. I didn't understand that, please give me your birthday in \`DD.MM.YYYY\` format!`);
         }
     }
 });
