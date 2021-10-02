@@ -4,41 +4,50 @@ const Discord = require("discord.js");
 const fs = require("fs");
 require('dotenv').config();
 
-const express = require('express')
+const express = require('express');
+const moment = require("moment");
 const app = express()
 
 const client = new Discord.Client();
 const token = process.env.CLIENT_TOKEN;
 
-let BIRTHDAY_CHANNEL_IDS = {};
+let birthdayConfig = {};
 
-function loadBirthdayChannelIDs() {
-    fs.readFile(DATA_FILE_PATH + "birthdayChannelIds.json", 'utf-8', (err, data) => {
+function loadBirthdayConfig() {
+    fs.readFile(DATA_FILE_PATH + "birthday.json", 'utf-8', (err, data) => {
         if (err) {
-            console.error(`Error reading birthdayChannelIds.json from disk: ${err})`);
+            console.error(`Error reading birthdays.json from disk: ${err})`);
         } else {
-            BIRTHDAY_CHANNEL_IDS = JSON.parse(data);
-            console.log(BIRTHDAY_CHANNEL_IDS);
+            birthdayConfig = JSON.parse(data);
+            console.log(birthdayConfig);
         }
     });
 }
 
-function saveBirthdayChannelIDs() {
-    const data = JSON.stringify(BIRTHDAY_CHANNEL_IDS);
+function saveBirthdayConfig() {
+    const data = JSON.stringify(birthdayConfig);
 
-    fs.writeFile(DATA_FILE_PATH + "birthdayChannelIds.json", data, (err) => {
+    fs.writeFile(DATA_FILE_PATH + "birthday.json", data, (err) => {
         if (err) {
             console.error(err);
         } else {
-            console.log("Updated birthdayChannelIds.json");
+            console.log("Updated birthday.json");
         }
     })
 }
 
+function escapeRegExp(string) {
+    return string.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');
+}
+
+function replaceAll(str, find, replace) {
+    return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+}
+
 /********************************** Discord Stuff **********************************/
 client.once("ready", () => {
-    console.log("Loading BirthdayChannelIDs.");
-    loadBirthdayChannelIDs();
+    console.log("Loading birthday config.");
+    loadBirthdayConfig();
     console.log("Bot is ready.");
 });
 
@@ -48,11 +57,16 @@ client.on("message", message => { // runs whenever a message is sent
         const guildId = message.guild.id;
         const channelId = message.channel.id;
         const channelName = message.channel.name;
-        BIRTHDAY_CHANNEL_IDS[guildId] = channelId;
+        birthdayConfig[guildId] = {channel: channelId};
         console.log(`Set channel ID for server ${guildId} to ${channelId}`);
         channel = client.channels.cache.get(channelId);
         channel.send(`Okay ${channelName} is now the new channel for birthday messages!`);
-        saveBirthdayChannelIDs();
+        saveBirthdayConfig();
+    } else if(message.content.startsWith("/birthday ")) {
+        let dateString = message.content.replace("/birthday ","");
+        dateString = replaceAll(dateString,".","-");
+        console.log(dateString);
+        console.log(moment(dateString).format("DD.MM.YYYY"));
     }
 });
 
