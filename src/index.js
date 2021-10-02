@@ -2,6 +2,7 @@ const DATA_FILE_PATH = './data/';
 
 const Discord = require("discord.js");
 const fs = require("fs");
+const date = require('date-and-time');
 require('dotenv').config();
 
 const express = require('express');
@@ -59,14 +60,24 @@ client.on("message", message => { // runs whenever a message is sent
         const channelName = message.channel.name;
         birthdayConfig[guildId] = {channel: channelId};
         console.log(`Set channel ID for server ${guildId} to ${channelId}`);
-        channel = client.channels.cache.get(channelId);
+        const channel = client.channels.cache.get(channelId);
         channel.send(`Okay ${channelName} is now the new channel for birthday messages!`);
         saveBirthdayConfig();
     } else if(message.content.startsWith("/birthday ")) {
         let dateString = message.content.replace("/birthday ","");
         dateString = replaceAll(dateString,".","-");
-        console.log(dateString);
-        console.log(moment(dateString).format("DD.MM.YYYY"));
+        const parsedDate = date.parse(dateString,"DD-MM-YYYY",true);
+        const channel = client.channels.cache.get(message.channel.id);
+        const guild = client.guilds.cache.get(message.guild.id);
+        const member = guild.members.cache.get(message.author.id);
+        const nickname = member.displayName;
+        if (! isNaN(parsedDate)) {
+            birthdayConfig[message.guild.id][message.author.id] = parsedDate;
+            saveBirthdayConfig();
+            channel.send(`Thank you ${nickname}. I'll write that down and remember!`);
+        } else {
+            channel.send(`I am sorry ${nickname}. I didn't understand that, please give me your birthday in DD.MM.YYYY format!`);
+        }
     }
 });
 
