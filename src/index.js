@@ -59,7 +59,14 @@ client.on("message", message => { // runs whenever a message is sent
         const guildId = message.guild.id;
         const channelId = message.channel.id;
         const channelName = message.channel.name;
-        birthdayConfig[guildId] = { channel: channelId };
+        if (typeof birthdayConfig[guildId] == "undefined"){
+            birthdayConfig[guildId] = { channel: channelId };
+        } else {
+            birthdayConfig[guildId]["channel"] = channelId;
+        }
+        if (typeof birthdayConfig[guildId]["birthdays"] == "undefined") {
+            birthdayConfig[guildId]["birthdays"] = {};
+        }
         console.log(`Set channel ID for server ${guildId} to ${channelId}`);
         const channel = client.channels.cache.get(channelId);
         channel.send(`Okay ${channelName} is now the new channel for birthday messages!`);
@@ -73,7 +80,7 @@ client.on("message", message => { // runs whenever a message is sent
         const member = guild.members.cache.get(message.author.id);
         const nickname = member.displayName;
         if (!isNaN(parsedDate)) {
-            birthdayConfig[message.guild.id][message.author.id] = parsedDate;
+            birthdayConfig[message.guild.id]["birthdays"][message.author.id] = parsedDate;
             saveBirthdayConfig();
             channel.send(`Thank you ${nickname}. I'll write that down and remember!`);
         } else {
