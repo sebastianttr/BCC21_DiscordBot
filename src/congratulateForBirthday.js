@@ -15,8 +15,8 @@ function loadBirthdayConfig(_callback) {
             console.error(`Error reading birthdays.json from disk: ${err})`);
         } else {
             birthdayConfig = JSON.parse(data);
+            _callback();
         }
-        _callback();
     });
 }
 
