@@ -13,6 +13,7 @@ function loadBirthdayConfig(_callback) {
     fs.readFile(DATA_FILE_PATH + "birthday.json", 'utf-8', (err, data) => {
         if (err) {
             console.error(`Error reading birthdays.json from disk: ${err})`);
+            process.exit(1);
         } else {
             birthdayConfig = JSON.parse(data);
             _callback();
