@@ -197,12 +197,6 @@ app.get('/', async(request, response) => {
     }
 });
 
-app.get('/send', (req, res) => {
-    console.log("Birthday Channel ID: " + birthdayChannelID)
-    client.channels.cache.get(birthdayChannelID).send("Happy Birthday Sebastian. We wish you all the best.")
-    res.send('Sending birthday congratulations.')
-})
-
 app.get('/notify', (req, res) => {
     const notification = req.query.text
     res.send("Notified the channels.")
