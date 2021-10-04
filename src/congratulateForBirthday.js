@@ -28,6 +28,9 @@ client.once("ready", async() => {
             }
         }
     });
+    setTimeout(function () {
+        process.exit(0);
+    }, 10000);
 });
 
 function loadBirthdayConfig(_callback) {
