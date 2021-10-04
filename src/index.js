@@ -143,6 +143,7 @@ client.on("message", message => { // runs whenever a message is sent
         const nickname = member.displayName;
         if (!isNaN(parsedDate)) {
             birthdayConfig[message.guild.id]["birthdays"][message.author.id] = parsedDate;
+            console.log(message.author.id)
             saveBirthdayConfig();
             channel.send(`Thank you ${nickname}. I'll write that down and remember!`);
         } else {
