@@ -14,6 +14,11 @@ class GuildService {
         return reqRes.data
     }
 
+    async fetchGuildChannels() {
+        const reqRes = await this.makeGetReq("https://discord.com/api/guilds/892431622580883477/channels")
+        return reqRes.data
+    }
+
     async makeGetReq(url) {
         const request = await axios.get(url, {
             headers: {

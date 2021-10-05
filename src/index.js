@@ -28,7 +28,7 @@ let birthdayConfig = {};
 
 const DATA_FILE_PATH = "./data/";
 
-const openEndpoints = ['/', '/test']
+const openEndpoints = ['/', '/test', '/getAllChannels']
 
 
 /********************************** Functions & Helpers **********************************/
@@ -251,20 +251,39 @@ app.post('/notify', (req, res) => {
     const text = req.body.text;
 
 
-    client.channels.cache.get("893508171061145690").send("BCC Bot Announcement: " + text)
+    client.channels.cache.get(req.body.channelId).send("BCC Bot Announcement: " + text)
     res.send(`Thank you ${userData.username}. Broadcasting to everyone.`)
 })
 
 app.post('/notifyEmbedded', (req, res) => {
     const userData = JSON.parse(buffer.from(req.body.userdata, 'base64').toString('ascii'));
-    const text = req.body.text;
 
+    const messageEmbedded = new Discord.MessageEmbed()
+        .setColor('#3ca6a6')
+        .setTitle(req.body.title)
+        .setDescription(req.body.description)
+        .addFields({ name: "Sent by", value: userData.username });
 
-    client.channels.cache.get("893508171061145690").send("BCC Bot Announcement: " + text)
+    client.channels.cache.get(req.body.channelId).send(messageEmbedded)
     res.send(`Thank you ${userData.username}. Broadcasting to everyone.`)
 })
 
+app.get('/getAllChannels', async(req, res) => {
+    const channels = await guildService.fetchGuildChannels();
 
+    var filteredChannels = channels.filter(item => {
+        return item.type == 0
+    })
+
+    var newMapping = filteredChannels.map(item => {
+        return {
+            channelName: item.name,
+            channelId: item.id
+        }
+    })
+
+    res.send(newMapping)
+})
 
 /************************************* Startups *************************************/
 
