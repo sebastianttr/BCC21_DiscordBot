@@ -1,5 +1,11 @@
+const { Console } = require('console');
 const https = require('https');
 const ical = require('node-ical');
+
+const today = new Date();
+today.setUTCHours(4,0,0,0);
+const tomorrow = new Date(today);
+tomorrow.setDate(tomorrow.getDate() + 1);
 
 let groupACalender = null;
 let groupBCalender = null;
@@ -19,6 +25,7 @@ const groupARequest = https.get("https://cis.fhstp.ac.at/addons/STPCore/cis/mein
     });
     response.on('end', function() {
         groupACalenderDone = true;
+        console.log("Calendar A done!")
         printCalenders();
     });
 });
@@ -33,9 +40,27 @@ const groupBRequest = https.get("https://cis.fhstp.ac.at/addons/STPCore/cis/mein
     });
     response.on('end', function() {
         groupBCalenderDone = true;
+        console.log("Calendar B done!")
         printCalenders();
     });
 });
+
+function parseICS(){
+    groupAEvents = ical.sync.parseICS(groupACalender);
+    groupBEvents = ical.sync.parseICS(groupBCalender);
+
+    for (k of Object.keys(groupAEvents)){
+        if(groupAEvents[k].start != undefined){
+           const day  = groupAEvents[k].start.getDate();
+           const month = groupAEvents[k].start.getMonth();
+           const year = groupAEvents[k].start.getFullYear();
+
+           if (day == tomorrow.getDate() && month == tomorrow.getMonth() && year == tomorrow.getFullYear()){
+               console.log(groupAEvents[k]);
+           }
+        }
+    }
+}
 
 function bothCalendersLoaded() {
     return groupACalenderDone && groupBCalenderDone;
@@ -43,7 +68,6 @@ function bothCalendersLoaded() {
 
 function printCalenders() {
     if (bothCalendersLoaded()) {
-        console.log(groupACalender);
-        console.log(groupBCalender);
+        parseICS();
     }
 };
