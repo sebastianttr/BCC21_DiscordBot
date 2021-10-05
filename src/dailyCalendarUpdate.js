@@ -87,7 +87,7 @@ function sendMessages(collection, channelId) {
     if (collection.length == 0) {
         channel.send("Good news! You don't have any events planned for today.");
     } else {
-        channel.send("Good morning! You have upcoming event today. I prepared your shedule.");
+        channel.send("Good morning! You have upcoming event(s) today. I prepared your shedule.");
         let embeds = [];
         for (ev of collection){
             const embed = new Discord.MessageEmbed()
