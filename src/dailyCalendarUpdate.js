@@ -7,9 +7,9 @@ require('dotenv').config();
 
 const DATA_FILE_PATH = "./data/";
 
-const today = new Date();
+let today = new Date();
 today.setUTCHours(4,0,0,0);
-const tomorrow = new Date(today);
+let tomorrow = new Date(today);
 tomorrow.setDate(tomorrow.getDate() + 1);
 
 let groupACalender = null;
@@ -57,7 +57,15 @@ function loadICS(){
     });
 }
 
+function sendingDone(){
+    return sendingADone && sendingBDone;
+}
 
+function exitProgram(){
+    if ( sendingDone() ) {
+        process.exit(0);
+    }
+}
 
 function loadConfig(_callback) {
     fs.readFile(DATA_FILE_PATH + "calendar.json", 'utf-8', (err, data) => {
@@ -77,7 +85,24 @@ function sendMessages(collection, channelId) {
     const channel = client.channels.cache.get(channelId);
     console.log(collection);
     if (collection.length == 0) {
-        channel.send("Good news! You don't have any Events planned for today.")
+        channel.send("Good news! You don't have any events planned for today.");
+    } else {
+        channel.send("Good morning! You have upcoming event today. I prepared your shedule.");
+        let embeds = [];
+        for (ev of collection){
+            const embed = new Discord.MessageEmbed()
+                .setColor('#00ffff')
+                .setTitle(ev.summary)
+                .setDescription(ev.description)
+                .addFields(
+                    { name: "Location", value: ev.location },
+                    { name: "start", value: ev.start.toLocaleTimeString(),inline: true },
+                    { name: "end", value: ev.end.toLocaleTimeString(),inline: true },
+                );
+            console.log(embed);
+            embeds.push(embed);
+            channel.send(embed);
+        }
     }
 }
 
@@ -116,8 +141,6 @@ function parseICS(){
     sendMessages(groupBEventCollection, calendarConfig["groupBChannel"]);
 }
 
-
-
 function bothCalendersLoaded() {
     return groupACalenderDone && groupBCalenderDone;
 }
@@ -130,6 +153,10 @@ function printCalenders() {
 
 client.once("ready", async() => {
     loadConfig(loadICS);
+
+    setTimeout(function () {
+        process.exit(0);
+    }, 10000);
 });
 
 client.login(token);
