@@ -1,6 +1,11 @@
-const { Console } = require('console');
 const https = require('https');
 const ical = require('node-ical');
+const fs = require("fs");
+const Discord = require("discord.js");
+
+require('dotenv').config();
+
+const DATA_FILE_PATH = "./data/";
 
 const today = new Date();
 today.setUTCHours(4,0,0,0);
@@ -15,35 +20,57 @@ let groupBCalenderDone = false;
 let groupAEvents = null;
 let groupBEvents = null;
 
-const groupARequest = https.get("https://cis.fhstp.ac.at/addons/STPCore/cis/meincis/cal.php?tiny=stp60c9a6d405be7", function(response) {
-    response.on('data', function(body){
-        if (groupACalender == null) {
-            groupACalender = body;
-        } else {
-            groupACalender += body;
-        }
-    });
-    response.on('end', function() {
-        groupACalenderDone = true;
-        console.log("Calendar A done!")
-        printCalenders();
-    });
-});
+let calendarConfig = null;
 
-const groupBRequest = https.get("https://cis.fhstp.ac.at/addons/STPCore/cis/meincis/cal.php?tiny=stp60c9a6d8a4207", function(response) {
-    response.on('data', function(body){
-        if (groupBCalender == null) {
-            groupBCalender = body;
+const client = new Discord.Client();
+const token = process.env.CLIENT_TOKEN;
+
+function loadICS(){
+    const groupARequest = https.get("https://cis.fhstp.ac.at/addons/STPCore/cis/meincis/cal.php?tiny=stp60c9a6d405be7", function(response) {
+        response.on('data', function(body){
+            if (groupACalender == null) {
+                groupACalender = body;
+            } else {
+                groupACalender += body;
+            }
+        });
+        response.on('end', function() {
+            groupACalenderDone = true;
+            console.log("Calendar A done!")
+            printCalenders();
+        });
+    });
+    
+    const groupBRequest = https.get("https://cis.fhstp.ac.at/addons/STPCore/cis/meincis/cal.php?tiny=stp60c9a6d8a4207", function(response) {
+        response.on('data', function(body){
+            if (groupBCalender == null) {
+                groupBCalender = body;
+            } else {
+                groupBCalender += body;
+            }
+        });
+        response.on('end', function() {
+            groupBCalenderDone = true;
+            console.log("Calendar B done!")
+            printCalenders();
+        });
+    });
+}
+
+
+
+function loadConfig(_callback) {
+    fs.readFile(DATA_FILE_PATH + "calendar.json", 'utf-8', (err, data) => {
+        if (err) {
+            console.error(`Error reading calendar.json from disk: ${err})`);
+            process.exit(1);
         } else {
-            groupBCalender += body;
+            calendarConfig = JSON.parse(data);
+            console.log(calendarConfig);
+            _callback();
         }
     });
-    response.on('end', function() {
-        groupBCalenderDone = true;
-        console.log("Calendar B done!")
-        printCalenders();
-    });
-});
+}
 
 function parseICS(){
     groupAEvents = ical.sync.parseICS(groupACalender);
@@ -70,4 +97,10 @@ function printCalenders() {
     if (bothCalendersLoaded()) {
         parseICS();
     }
-};
+}
+
+client.once("ready", async() => {
+    loadConfig(loadICS);
+});
+
+client.login(token);
