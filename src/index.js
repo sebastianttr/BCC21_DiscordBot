@@ -217,9 +217,8 @@ app.get('/', async(request, response) => {
     }
 });
 
-
-
-app.get('/test', (req, res) => {
+app.get('/notify', (req, res) => {
+    const notification = req.query.text
     res.send("Notified the channels.")
 })
 
