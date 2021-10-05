@@ -11,6 +11,7 @@ var bodyParser = require('body-parser');
 require('dotenv').config();
 
 const express = require('express');
+var cors = require('cors')
 const moment = require("moment");
 const app = express()
 
@@ -157,8 +158,14 @@ client.on("message", message => { // runs whenever a message is sent
 
 /********************************** HTTP Endpoints **********************************/
 
+app.use(express.json());
+app.use(cors())
+
+app.disable('x-powered-by');
+
 //Auth interceptor
 app.use(async(req, res, next) => {
+
     if (openEndpoints.includes(req.path))
         next();
     else {
@@ -166,11 +173,14 @@ app.use(async(req, res, next) => {
         const userCheck = await authenticationService.checkUser(userData);
 
         if (userCheck) {
+            //console.log("User authenticated.")
             next();
         } else {
+            //console.log("User authenticated.")
             res.sendStatus(401)
         }
     }
+
 });
 
 
@@ -186,6 +196,8 @@ app.get('/', async(request, response) => {
             members.every(item => {
                 //console.log(item)
 
+                let guildID = Object.keys(birthdayConfig)[0]
+
                 if (item.user.username == sessionUsername) {
 
                     //console.log(JSON.stringify(replaceIdByRoleNames(item.roles)))
@@ -194,7 +206,9 @@ app.get('/', async(request, response) => {
                         username: item.user.username,
                         id: item.user.id,
                         roles: replaceIdByRoleNames(item.roles),
-                        birthday: "01.01.1970",
+                        birthday:
+                            (birthdayConfig[guildID].birthdays[item.user.id] == undefined) ?
+                            "1970-01-01T00:00:00.000Z" : birthdayConfig[guildID].birthdays[item.user.id],
                         avatarURL: "https://cdn.discordapp.com/avatars/" + item.user.id + "/" + item.user.avatar + ".png",
                         access_token: oauthData.access_token,
                         refresh_token: oauthData.refresh_token
@@ -217,18 +231,13 @@ app.get('/', async(request, response) => {
     }
 });
 
-app.get('/notify', (req, res) => {
-    const notification = req.query.text
-    res.send("Notified the channels.")
-})
-
 app.post('/setBirthdate', (req, res) => {
     const userData = JSON.parse(buffer.from(req.body.userdata, 'base64').toString('ascii'));
 
     var allBirthdayGuilds = Object.keys(birthdayConfig)
 
     allBirthdayGuilds.forEach(item => {
-        birthdayConfig[item][userData.id] = userData.birthday;
+        birthdayConfig[item].birthdays[userData.id] = userData.birthday;
     })
 
     saveBirthdayConfig();
@@ -238,6 +247,15 @@ app.post('/setBirthdate', (req, res) => {
 })
 
 app.post('/notify', (req, res) => {
+    const userData = JSON.parse(buffer.from(req.body.userdata, 'base64').toString('ascii'));
+    const text = req.body.text;
+
+
+    client.channels.cache.get("893508171061145690").send("BCC Bot Announcement: " + text)
+    res.send(`Thank you ${userData.username}. Broadcasting to everyone.`)
+})
+
+app.post('/notifyEmbedded', (req, res) => {
     const userData = JSON.parse(buffer.from(req.body.userdata, 'base64').toString('ascii'));
     const text = req.body.text;
 
