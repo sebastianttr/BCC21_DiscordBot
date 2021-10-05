@@ -37,8 +37,6 @@ class AuthenticationService {
 
     async checkUser(userdata) {
 
-        console.log(userdata)
-
         const userDataRequest = await axios.get("https://discord.com/api/users/@me", {
             headers: {
                 authorization: `Bearer ${userdata.access_token}`,
@@ -46,7 +44,6 @@ class AuthenticationService {
         })
 
         const responseData = await userDataRequest.data;
-        console.log(responseData);
 
         return responseData.id == userdata.id
     }

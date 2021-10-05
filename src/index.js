@@ -27,6 +27,8 @@ let birthdayConfig = {};
 
 const DATA_FILE_PATH = "./data/";
 
+const openEndpoints = ['/', '/test']
+
 
 /********************************** Functions & Helpers **********************************/
 
@@ -67,7 +69,7 @@ async function loadGuildData() {
     members = await guildService.fetchGuildMembers();
     //console.log("These are the roles of our BCC guild:")
 
-
+    /*
     try {
         roles.forEach(item => {
             console.log(`${JSON.stringify(item)}`)
@@ -80,6 +82,7 @@ async function loadGuildData() {
     } catch (e) {
         console.log("Error!")
     }
+    */
 
 }
 
@@ -121,7 +124,7 @@ client.on("message", message => { // runs whenever a message is sent
         const guildId = message.guild.id;
         const channelId = message.channel.id;
         const channelName = message.channel.name;
-        if (typeof birthdayConfig[guildId] == "undefined"){
+        if (typeof birthdayConfig[guildId] == "undefined") {
             birthdayConfig[guildId] = { channel: channelId };
         } else {
             birthdayConfig[guildId]["channel"] = channelId;
@@ -154,6 +157,23 @@ client.on("message", message => { // runs whenever a message is sent
 
 /********************************** HTTP Endpoints **********************************/
 
+//Auth interceptor
+app.use(async(req, res, next) => {
+    if (openEndpoints.includes(req.path))
+        next();
+    else {
+        const userData = JSON.parse(buffer.from(req.body.userdata, 'base64').toString('ascii'));
+        const userCheck = await authenticationService.checkUser(userData);
+
+        if (userCheck) {
+            next();
+        } else {
+            res.sendStatus(401)
+        }
+    }
+});
+
+
 app.get('/', async(request, response) => {
     if (request.query.code != undefined) {
         try {
@@ -164,7 +184,7 @@ app.get('/', async(request, response) => {
             let res
 
             members.every(item => {
-                console.log(item)
+                //console.log(item)
 
                 if (item.user.username == sessionUsername) {
 
@@ -197,29 +217,16 @@ app.get('/', async(request, response) => {
     }
 });
 
-app.get('/send', (req, res) => {
-    console.log("Birthday Channel ID: " + birthdayChannelID)
-    client.channels.cache.get(birthdayChannelID).send("Happy Birthday Sebastian. We wish you all the best.")
-    res.send('Sending birthday congratulations.')
-})
 
-app.get('/notify', (req, res) => {
-    const notification = req.query.text
+
+app.get('/test', (req, res) => {
     res.send("Notified the channels.")
 })
 
-app.post('/setBirthdate', async(req, res) => {
-    //console.log(req.body)
-
-    var userData = JSON.parse(buffer.from(req.body.userdata, 'base64').toString('ascii'));
-
-    //console.log(userData)
-
-    var userCheck = await authenticationService.checkUser(userData);
-    //console.log((userCheck) ? "User is authorised. " : "User is not authorised.")
+app.post('/setBirthdate', (req, res) => {
+    const userData = JSON.parse(buffer.from(req.body.userdata, 'base64').toString('ascii'));
 
     var allBirthdayGuilds = Object.keys(birthdayConfig)
-        //console.log(JSON.stringify(allBirthdayGuilds))
 
     allBirthdayGuilds.forEach(item => {
         birthdayConfig[item][userData.id] = userData.birthday;
@@ -228,18 +235,19 @@ app.post('/setBirthdate', async(req, res) => {
     saveBirthdayConfig();
 
     res.send(`Thank you ${userData.username}. I'll write that down and remember!`)
+
 })
 
-app.post('/notify', async(req, res) => {
-    var userData = JSON.parse(buffer.from(req.body.userdata, 'base64').toString('ascii'));
+app.post('/notify', (req, res) => {
+    const userData = JSON.parse(buffer.from(req.body.userdata, 'base64').toString('ascii'));
+    const text = req.body.text;
 
-    var userCheck = await authenticationService.checkUser(userData);
-    console.log((userCheck) ? "User is authorised. " : "User is not authorised.")
 
-    client.channels.cache.get("893508171061145690").send("AUTO NOTIFICATION: " + notification);
-
+    client.channels.cache.get("893508171061145690").send("BCC Bot Announcement: " + text)
     res.send(`Thank you ${userData.username}. Broadcasting to everyone.`)
 })
+
+
 
 /************************************* Startups *************************************/
 
