@@ -1,9 +1,13 @@
 const https = require('https');
+const ical = require('node-ical');
 
 let groupACalender = null;
 let groupBCalender = null;
 let groupACalenderDone = false;
 let groupBCalenderDone = false;
+
+let groupAEvents = null;
+let groupBEvents = null;
 
 const groupARequest = https.get("https://cis.fhstp.ac.at/addons/STPCore/cis/meincis/cal.php?tiny=stp60c9a6d405be7", function(response) {
     response.on('data', function(body){
