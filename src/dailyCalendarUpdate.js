@@ -72,9 +72,21 @@ function loadConfig(_callback) {
     });
 }
 
+function sendMessages(collection, channelId) {
+    console.log("Send to channel: " + channelId);
+    const channel = client.channels.cache.get(channelId);
+    console.log(collection);
+    if (collection.length == 0) {
+        channel.send("Good news! You don't have any Events planned for today.")
+    }
+}
+
 function parseICS(){
     groupAEvents = ical.sync.parseICS(groupACalender);
     groupBEvents = ical.sync.parseICS(groupBCalender);
+
+    groupAEventCollection = [];
+    groupBEventCollection = [];
 
     for (k of Object.keys(groupAEvents)){
         if(groupAEvents[k].start != undefined){
@@ -82,12 +94,29 @@ function parseICS(){
            const month = groupAEvents[k].start.getMonth();
            const year = groupAEvents[k].start.getFullYear();
 
-           if (day == tomorrow.getDate() && month == tomorrow.getMonth() && year == tomorrow.getFullYear()){
-               console.log(groupAEvents[k]);
+           if (day == today.getDate() && month == today.getMonth() && year == today.getFullYear()){
+               groupAEventCollection.push(groupAEvents[k]);
            }
         }
     }
+
+    for (k of Object.keys(groupBEvents)){
+        if(groupBEvents[k].start != undefined){
+           const day  = groupBEvents[k].start.getDate();
+           const month = groupBEvents[k].start.getMonth();
+           const year = groupBEvents[k].start.getFullYear();
+
+           if (day == today.getDate() && month == today.getMonth() && year == today.getFullYear()){
+               groupBEventCollection.push(groupBEvents[k]);
+           }
+        }
+    }
+
+    sendMessages(groupAEventCollection, calendarConfig["groupAChannel"]);
+    sendMessages(groupBEventCollection, calendarConfig["groupBChannel"]);
 }
+
+
 
 function bothCalendersLoaded() {
     return groupACalenderDone && groupBCalenderDone;
