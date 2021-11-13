@@ -1,18 +1,20 @@
 const Discord = require("discord.js");
 const fs = require("fs");
 const axios = require("axios")
-var buffer = require('buffer/').Buffer;
+const buffer = require('buffer/').Buffer;
 const GuildService = require('./Services/GuildService');
 const AuthenticationService = require("./Services/AuthenticationService");
-
+const ical = require('node-ical');
+const dirTree = require('directory-tree');
 const date = require('date-and-time');
-var bodyParser = require('body-parser');
+const bodyParser = require('body-parser');
 
 require('dotenv').config();
 
 const express = require('express');
-var cors = require('cors')
+const cors = require('cors')
 const moment = require("moment");
+const { res } = require("date-and-time");
 const app = express()
 
 app.use(express.json())
@@ -28,7 +30,7 @@ let birthdayConfig = {};
 
 const DATA_FILE_PATH = "./data/";
 
-const openEndpoints = ['/', '/test', '/getAllChannels']
+const openEndpoints = ['/', '/test', '/getAllChannels', '/getDailyCalendar', '/getCalendar', '/getFileSystemStructure', '/getFile']
 
 
 /********************************** Functions & Helpers **********************************/
@@ -161,6 +163,7 @@ client.on("message", message => { // runs whenever a message is sent
 app.use(express.json());
 app.use(cors())
 
+app.set('trust proxy', true)
 app.disable('x-powered-by');
 
 //Auth interceptor
@@ -185,6 +188,10 @@ app.use(async(req, res, next) => {
 
 
 app.get('/', async(request, response) => {
+
+    console.log(request.connection.remoteAddress +
+        ":" + request.connection.remotePort)
+
     if (request.query.code != undefined) {
         try {
             const oauthData = await authenticationService.exchangeCodeForToken(request)
@@ -223,7 +230,7 @@ app.get('/', async(request, response) => {
                 }
             })
 
-            response.status(301).redirect("http://localhost:8080/?userdata=" + buffer.from(JSON.stringify(res)).toString('base64'))
+            response.status(301).redirect(`${process.env.REDIRECT_URI}?userdata=${buffer.from(JSON.stringify(res)).toString('base64')}`)
         } catch (e) {
             console.error(e);
         }
@@ -282,8 +289,66 @@ app.get('/getAllChannels', async(req, res) => {
         }
     })
 
+    console.log(newMapping)
+
     res.send(newMapping)
 })
+
+app.get('/getCalendar', async(req, res) => {
+    let group = req.query.group
+    let type = req.query.type
+
+    let requestData
+
+    if (group == "a") {
+        requestData = await makeGetRequest("https://cis.fhstp.ac.at/addons/STPCore/cis/meincis/cal.php?tiny=stp60c9a6d405be7")
+            //console.log(requestData)
+    } else {
+        requestData = await makeGetRequest("https://cis.fhstp.ac.at/addons/STPCore/cis/meincis/cal.php?tiny=stp60c9a6d8a4207")
+            //console.log(requestData)
+    }
+
+    var course = ical.sync.parseICS(requestData);
+
+    let groupCollection = []
+
+    let today = new Date();
+    today.setUTCHours(4, 0, 0, 0);
+
+    for (k of Object.keys(course)) {
+        if (course[k].start != undefined) {
+            const day = course[k].start.getDate();
+            const month = course[k].start.getMonth();
+            const year = course[k].start.getFullYear();
+
+            if (type == "daily") {
+                if (day == today.getDate() && month == today.getMonth() && year == today.getFullYear()) {
+                    groupCollection.push(course[k]);
+                }
+            } else groupCollection.push(course[k]);
+
+        }
+    }
+
+
+    res.send(groupCollection)
+})
+
+app.get("/getFileSystemStructure", (req, res) => {
+    res.send(dirTree("contentDelivery", { attributes: ["size", "type", "extension"] }))
+})
+
+app.get("/getFile", (req, res) => {
+    let filePath = req.query.path;
+    res.download(__dirname + `/../${filePath}`);
+})
+
+
+async function makeGetRequest(url) {
+    const request = await axios.get(url)
+    const reqResult = await request.data
+    return reqResult
+}
 
 /************************************* Startups *************************************/
 

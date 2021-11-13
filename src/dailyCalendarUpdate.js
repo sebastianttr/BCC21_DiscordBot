@@ -8,7 +8,7 @@ require('dotenv').config();
 const DATA_FILE_PATH = "./data/";
 
 let today = new Date();
-today.setUTCHours(4,0,0,0);
+today.setUTCHours(4, 0, 0, 0);
 let tomorrow = new Date(today);
 tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -25,9 +25,9 @@ let calendarConfig = null;
 const client = new Discord.Client();
 const token = process.env.CLIENT_TOKEN;
 
-function loadICS(){
+function loadICS() {
     const groupARequest = https.get("https://cis.fhstp.ac.at/addons/STPCore/cis/meincis/cal.php?tiny=stp60c9a6d405be7", function(response) {
-        response.on('data', function(body){
+        response.on('data', function(body) {
             if (groupACalender == null) {
                 groupACalender = body;
             } else {
@@ -40,9 +40,9 @@ function loadICS(){
             printCalenders();
         });
     });
-    
+
     const groupBRequest = https.get("https://cis.fhstp.ac.at/addons/STPCore/cis/meincis/cal.php?tiny=stp60c9a6d8a4207", function(response) {
-        response.on('data', function(body){
+        response.on('data', function(body) {
             if (groupBCalender == null) {
                 groupBCalender = body;
             } else {
@@ -57,12 +57,12 @@ function loadICS(){
     });
 }
 
-function sendingDone(){
+function sendingDone() {
     return sendingADone && sendingBDone;
 }
 
-function exitProgram(){
-    if ( sendingDone() ) {
+function exitProgram() {
+    if (sendingDone()) {
         process.exit(0);
     }
 }
@@ -89,16 +89,12 @@ function sendMessages(collection, channelId) {
     } else {
         channel.send("Good morning! You have upcoming event(s) today. I prepared your shedule.");
         let embeds = [];
-        for (ev of collection){
+        for (ev of collection) {
             const embed = new Discord.MessageEmbed()
                 .setColor('#00ffff')
                 .setTitle(ev.summary)
                 .setDescription(ev.description)
-                .addFields(
-                    { name: "Location", value: ev.location },
-                    { name: "start", value: ev.start.toLocaleTimeString(),inline: true },
-                    { name: "end", value: ev.end.toLocaleTimeString(),inline: true },
-                );
+                .addFields({ name: "Location", value: ev.location }, { name: "start", value: ev.start.toLocaleTimeString(), inline: true }, { name: "end", value: ev.end.toLocaleTimeString(), inline: true }, );
             console.log(embed);
             embeds.push(embed);
             channel.send(embed);
@@ -106,39 +102,41 @@ function sendMessages(collection, channelId) {
     }
 }
 
-function parseICS(){
+function parseICS() {
     groupAEvents = ical.sync.parseICS(groupACalender);
     groupBEvents = ical.sync.parseICS(groupBCalender);
 
     groupAEventCollection = [];
     groupBEventCollection = [];
 
-    for (k of Object.keys(groupAEvents)){
-        if(groupAEvents[k].start != undefined){
-           const day  = groupAEvents[k].start.getDate();
-           const month = groupAEvents[k].start.getMonth();
-           const year = groupAEvents[k].start.getFullYear();
+    for (k of Object.keys(groupAEvents)) {
+        if (groupAEvents[k].start != undefined) {
+            const day = groupAEvents[k].start.getDate();
+            const month = groupAEvents[k].start.getMonth();
+            const year = groupAEvents[k].start.getFullYear();
 
-           if (day == today.getDate() && month == today.getMonth() && year == today.getFullYear()){
-               groupAEventCollection.push(groupAEvents[k]);
-           }
+            if (day == today.getDate() && month == today.getMonth() && year == today.getFullYear()) {
+                groupAEventCollection.push(groupAEvents[k]);
+            }
         }
     }
 
-    for (k of Object.keys(groupBEvents)){
-        if(groupBEvents[k].start != undefined){
-           const day  = groupBEvents[k].start.getDate();
-           const month = groupBEvents[k].start.getMonth();
-           const year = groupBEvents[k].start.getFullYear();
+    for (k of Object.keys(groupBEvents)) {
+        if (groupBEvents[k].start != undefined) {
+            const day = groupBEvents[k].start.getDate();
+            const month = groupBEvents[k].start.getMonth();
+            const year = groupBEvents[k].start.getFullYear();
 
-           if (day == today.getDate() && month == today.getMonth() && year == today.getFullYear()){
-               groupBEventCollection.push(groupBEvents[k]);
-           }
+            if (day == today.getDate() && month == today.getMonth() && year == today.getFullYear()) {
+                groupBEventCollection.push(groupBEvents[k]);
+            }
         }
     }
 
-    sendMessages(groupAEventCollection, calendarConfig["groupAChannel"]);
-    sendMessages(groupBEventCollection, calendarConfig["groupBChannel"]);
+    console.log(groupAEvents)
+
+    //sendMessages(groupAEventCollection, calendarConfig["groupAChannel"]);
+    //sendMessages(groupBEventCollection, calendarConfig["groupBChannel"]);
 }
 
 function bothCalendersLoaded() {
@@ -154,7 +152,7 @@ function printCalenders() {
 client.once("ready", async() => {
     loadConfig(loadICS);
 
-    setTimeout(function () {
+    setTimeout(function() {
         process.exit(0);
     }, 10000);
 });
